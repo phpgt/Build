@@ -74,3 +74,9 @@ Features at a glance
 + One-off builds
 + Background builds (watching the matching files and re-building where necessary)
 + Bring your own client-side dependency manager
+
+### Proudly sponsored by
+
+[JetBrains Open Source sponsorship program](https://www.jetbrains.com/community/opensource/)
+
+[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://www.jetbrains.com/community/opensource/)
