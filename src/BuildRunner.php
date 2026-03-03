@@ -94,8 +94,10 @@ class BuildRunner {
 		return $jsonPath;
 	}
 
-	/** @SuppressWarnings(PHPMD.ExitExpression) */
-	/** @param array<int, string> $errors */
+	/**
+	 * @SuppressWarnings(PHPMD.ExitExpression)
+	 * @param array<int, string> $errors
+	 */
 	protected function checkRequirements(
 		string $jsonPath,
 		string $workingDirectory,

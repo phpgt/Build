@@ -55,8 +55,10 @@ class Task {
 		}
 	}
 
-	/** @SuppressWarnings(PHPMD.StaticAccess) */
-	/** @param array<int, string>|null $errors */
+	/**
+	 * @SuppressWarnings(PHPMD.StaticAccess)
+	 * @param array<int, string>|null $errors
+	 */
 	public function build(?array &$errors = null):bool {
 		$hashMiss = false;
 
