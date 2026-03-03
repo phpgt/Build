@@ -1,6 +1,6 @@
 #!/usr/bin/env php
 <?php
-use Gt\Build\Command\RunCommand;
+use Gt\Build\Cli\RunCommand;
 use Gt\Cli\Application;
 use Gt\Cli\Argument\CommandArgumentList;
 
