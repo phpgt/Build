@@ -9,22 +9,19 @@ use Webmozart\Glob\Glob;
 use Webmozart\PathUtil\Path;
 
 class Task {
-	protected $absolutePath;
-	protected $basePath;
-	protected $glob;
+	protected string $absolutePath;
+	protected string $basePath;
+	protected string $glob;
 
-	protected $name;
+	protected string $name;
 	/** @var Requirement[] */
 	protected $requirementList = [];
-	/** @var ExecuteBlock */
-	protected $execute;
+	protected ExecuteBlock $execute;
 
-	protected $fileHashList = [];
+	/** @var array<string, int> */
+	protected array $fileHashList = [];
 
 	/**
-	 * @param object $taskBlock Details from the JSON data for this task
-	 * @param string $glob Path match for files to check for changes
-	 * @param string $basePath Path within project directory to check
 	 * @SuppressWarnings(PHPMD.StaticAccess)
 	 */
 	public function __construct(
@@ -44,6 +41,7 @@ class Task {
 		return $this->name ?? $this->execute->command;
 	}
 
+	/** @param array<int, string>|null $errors */
 	public function check(?array &$errors = null):void {
 		foreach($this->requirementList as $requirement) {
 			if(!$requirement->check($errors)) {
@@ -58,11 +56,15 @@ class Task {
 	}
 
 	/** @SuppressWarnings(PHPMD.StaticAccess) */
+	/** @param array<int, string>|null $errors */
 	public function build(?array &$errors = null):bool {
 		$hashMiss = false;
 
 		foreach(Glob::glob($this->absolutePath) as $matchedPath) {
 			$hash = filemtime($matchedPath);
+			if($hash === false) {
+				continue;
+			}
 			$existingHash = $this->fileHashList[$matchedPath] ?? null;
 
 			if($hash !== $existingHash) {
@@ -96,6 +98,7 @@ class Task {
 		}
 	}
 
+	/** @param array<int, string>|null $errors */
 	protected function execute(?array &$errors = null):bool {
 		$previousCwd = getcwd();
 		chdir($this->basePath);
@@ -127,7 +130,7 @@ class Task {
 				throw new TaskExecutionFailureException(
 					implode(" ", array_merge(
 						[$this->execute->command],
-						...$this->execute->arguments
+						$this->execute->arguments
 					))
 				);
 			}

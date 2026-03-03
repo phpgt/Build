@@ -8,14 +8,15 @@ use Iterator;
 /**
  * Represents the entire JSON configuration file, build.json
  * Each path pattern in the JSON is represented with a PathPattern object.
+ * @implements Iterator<string, TaskBlock>
  */
 class Manifest implements Iterator {
-	/** @var TaskBlock[] */
-	protected $taskBlockList;
+	/** @var array<string, TaskBlock> */
+	protected array $taskBlockList;
 	/** @var string|null Null if the index is out of bounds */
-	protected $iteratorKey;
+	protected ?string $iteratorKey = null;
 	/** @var int Numerical index to use in iteration */
-	protected $iteratorIndex;
+	protected int $iteratorIndex = 0;
 
 	public function __construct(string $jsonFilePath, ?string $mode = null) {
 		if(!is_file($jsonFilePath)) {
@@ -46,7 +47,7 @@ class Manifest implements Iterator {
 
 		$this->taskBlockList = [];
 		foreach($json as $glob => $details) {
-			$this->taskBlockList []= new TaskBlock(
+			$this->taskBlockList[$glob] = new TaskBlock(
 				$glob,
 				$details
 			);

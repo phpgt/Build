@@ -12,8 +12,8 @@ class Requirement {
 		"*" => "/([\d\.]+)/",
 	];
 
-	protected $name;
-	protected $version;
+	protected string $name;
+	protected string $version;
 
 	public function __construct(string $name, string $version) {
 		$this->name = $name;
@@ -27,6 +27,7 @@ class Requirement {
 		]);
 	}
 
+	/** @param array<int, string>|null $errors */
 	public function check(?array &$errors = null):bool {
 		$arg = $this->getArgumentToCheckVersionOfCommand();
 		$versionCommand = implode(" ", [

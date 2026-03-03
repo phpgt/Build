@@ -18,6 +18,7 @@ class RequireBlock {
 		}
 	}
 
+	/** @return array<int, RequireBlockItem> */
 	public function getAllRequireBlockItems():array {
 		return $this->requireBlockItemList;
 	}

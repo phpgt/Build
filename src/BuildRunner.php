@@ -95,10 +95,11 @@ class BuildRunner {
 	}
 
 	/** @SuppressWarnings(PHPMD.ExitExpression) */
+	/** @param array<int, string> $errors */
 	protected function checkRequirements(
 		string $jsonPath,
 		string $workingDirectory,
-		array $errors,
+		array &$errors,
 		?string $mode
 	):Build {
 		try {
@@ -135,6 +136,10 @@ class BuildRunner {
 		while($continue);
 	}
 
+	/**
+	 * @param array<int, Task> $updates
+	 * @param array<int, string> $errors
+	 */
 	protected function logUpdatesAndErrors(array $updates, array $errors):void {
 		foreach($updates as $update) {
 			$this->logMessage("Success: $update");
@@ -150,6 +155,7 @@ class BuildRunner {
 		$this->stream->writeLine($message, $severity);
 	}
 
+	/** @param array<int, string> $errors */
 	protected function showErrors(array $errors): void {
 		$this->stream->writeLine("The following errors occurred:", Stream::ERROR);
 		foreach($errors as $e) {
@@ -157,7 +163,7 @@ class BuildRunner {
 		}
 	}
 
-	protected function logElapsedTime($startTime): void {
+	protected function logElapsedTime(float $startTime): void {
 		$deltaTime = round(microtime(true) - $startTime, 1);
 		$this->stream->writeLine("Build script completed in $deltaTime seconds.");
 	}

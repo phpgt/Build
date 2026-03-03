@@ -4,13 +4,14 @@ namespace Gt\Build;
 use Gt\Build\Configuration\Manifest;
 use Iterator;
 
+/**
+ * @implements Iterator<string, Task>
+ */
 class TaskList implements Iterator {
 	/** @var Task[] */
-	protected $taskList = [];
-	/** @var string|null Null if the index is out of bounds */
-	protected $iteratorKey;
-	/** @var int Numerical index to use in iteration */
-	protected $iteratorIndex;
+	protected array $taskList = [];
+	protected int $iteratorIndex = 0;
+	protected ?string $iteratorKey = null;
 
 	public function __construct(
 		string $jsonFilePath,

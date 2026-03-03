@@ -4,9 +4,7 @@ namespace Gt\Build;
 use Webmozart\Glob\Glob;
 
 class Build {
-	/** @var TaskList */
-	protected $taskList;
-	protected $baseDir;
+	protected TaskList $taskList;
 
 	public function __construct(
 		string $jsonFilePath,
@@ -22,6 +20,7 @@ class Build {
 
 	/**
 	 * For each task, ensure all requirements are met.
+	 * @param array<int, string>|null $errors
 	 * @SuppressWarnings(PHPMD.StaticAccess)
 	 */
 	public function check(?array &$errors = null):int {
@@ -47,6 +46,7 @@ class Build {
 	 * Executes the commands associated with each build task.
 	 * @return Task[] List of tasks built (some may not need building due to
 	 * having no changes).
+	 * @param array<int, string>|null $errors
 	 */
 	public function build(?array &$errors = null):array {
 		$updatedTasks = [];
