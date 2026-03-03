@@ -8,7 +8,7 @@ use Gt\Cli\Parameter\NamedParameter;
 use Gt\Cli\Parameter\Parameter;
 
 class RunCommand extends Command {
-	public function run(ArgumentValueList $arguments = null):void {
+	public function run(?ArgumentValueList $arguments = null):void {
 		$buildRunner = new BuildRunner(getcwd(), $this->stream);
 		if($arguments->contains("default")) {
 			$buildRunner->setDefaultPath($arguments->get("default"));

@@ -44,7 +44,7 @@ class Task {
 		return $this->name ?? $this->execute->command;
 	}
 
-	public function check(array &$errors = null):void {
+	public function check(?array &$errors = null):void {
 		foreach($this->requirementList as $requirement) {
 			if(!$requirement->check($errors)) {
 				if(is_null($errors)) {
@@ -58,7 +58,7 @@ class Task {
 	}
 
 	/** @SuppressWarnings(PHPMD.StaticAccess) */
-	public function build(array &$errors = null):bool {
+	public function build(?array &$errors = null):bool {
 		$hashMiss = false;
 
 		foreach(Glob::glob($this->absolutePath) as $matchedPath) {
@@ -96,7 +96,7 @@ class Task {
 		}
 	}
 
-	protected function execute(array &$errors = null):bool {
+	protected function execute(?array &$errors = null):bool {
 		$previousCwd = getcwd();
 		chdir($this->basePath);
 

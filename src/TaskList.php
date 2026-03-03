@@ -35,7 +35,7 @@ class TaskList implements Iterator {
 
 	/** @link https://php.net/manual/en/iterator.next.php */
 	public function next():void {
-		$this->iteratorIndex ++;
+		$this->iteratorIndex++;
 		$this->setIteratorKey();
 	}
 

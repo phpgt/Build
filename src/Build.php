@@ -24,7 +24,7 @@ class Build {
 	 * For each task, ensure all requirements are met.
 	 * @SuppressWarnings(PHPMD.StaticAccess)
 	 */
-	public function check(array &$errors = null):int {
+	public function check(?array &$errors = null):int {
 		$count = 0;
 
 		foreach($this->taskList as $pathMatch => $task) {
@@ -48,7 +48,7 @@ class Build {
 	 * @return Task[] List of tasks built (some may not need building due to
 	 * having no changes).
 	 */
-	public function build(array &$errors = null):array {
+	public function build(?array &$errors = null):array {
 		$updatedTasks = [];
 		foreach($this->taskList as $task) {
 			if($task->build($errors)) {

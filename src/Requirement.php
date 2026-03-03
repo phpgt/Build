@@ -27,7 +27,7 @@ class Requirement {
 		]);
 	}
 
-	public function check(array &$errors = null):bool {
+	public function check(?array &$errors = null):bool {
 		$arg = $this->getArgumentToCheckVersionOfCommand();
 		$versionCommand = implode(" ", [
 			$this->name,
