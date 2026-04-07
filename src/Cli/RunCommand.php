@@ -13,9 +13,13 @@ class RunCommand extends Command {
 		if($arguments->contains("default")) {
 			$buildRunner->setDefaultPath($arguments->get("default"));
 		}
+		$mode = null;
+		if($arguments->contains("mode")) {
+			$mode = (string)$arguments->get("mode");
+		}
 		$buildRunner->run(
 			$arguments->contains("watch"),
-			$arguments->get("mode"),
+			$mode,
 		);
 
 		return 0;
