@@ -8,7 +8,7 @@ use Gt\Cli\Parameter\NamedParameter;
 use Gt\Cli\Parameter\Parameter;
 
 class RunCommand extends Command {
-	public function run(?ArgumentValueList $arguments = null):void {
+	public function run(?ArgumentValueList $arguments = null):int {
 		$buildRunner = new BuildRunner(getcwd(), $this->stream);
 		if($arguments->contains("default")) {
 			$buildRunner->setDefaultPath($arguments->get("default"));
@@ -17,6 +17,8 @@ class RunCommand extends Command {
 			$arguments->contains("watch"),
 			$arguments->get("mode"),
 		);
+
+		return 0;
 	}
 
 	public function getName():string {
