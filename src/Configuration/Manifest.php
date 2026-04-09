@@ -106,7 +106,11 @@ class Manifest implements Iterator {
 	}
 
 	private function parseIniFile(string $configFilePath):object {
-		$ini = @parse_ini_file($configFilePath, true, INI_SCANNER_RAW);
+		set_error_handler(static function():bool {
+			return true;
+		});
+		$ini = parse_ini_file($configFilePath, true, INI_SCANNER_RAW);
+		restore_error_handler();
 		if($ini === false) {
 			throw new ConfigurationParseException("Syntax error");
 		}
@@ -169,36 +173,13 @@ class Manifest implements Iterator {
 		$length = strlen($executeString);
 
 		for($i = 0; $i < $length; $i++) {
-			$char = $executeString[$i];
-
-			if($quote !== null) {
-				if($char === $quote) {
-					$quote = null;
-				}
-				else {
-					$currentToken .= $char;
-				}
-				$tokenInProgress = true;
-				continue;
-			}
-
-			if($char === "'" || $char === '"') {
-				$quote = $char;
-				$tokenInProgress = true;
-				continue;
-			}
-
-			if(ctype_space($char)) {
-				if($tokenInProgress) {
-					$tokens []= $currentToken;
-					$currentToken = "";
-					$tokenInProgress = false;
-				}
-				continue;
-			}
-
-			$currentToken .= $char;
-			$tokenInProgress = true;
+			$this->consumeExecuteCharacter(
+				$executeString[$i],
+				$tokens,
+				$currentToken,
+				$quote,
+				$tokenInProgress,
+			);
 		}
 
 		if($quote !== null) {
@@ -217,6 +198,77 @@ class Manifest implements Iterator {
 		$execute->command = array_shift($tokens);
 		$execute->arguments = $tokens;
 		return $execute;
+	}
+
+	/**
+	 * @param array<int, string> $tokens
+	 * @param string|null $quote
+	 */
+	private function consumeExecuteCharacter(
+		string $char,
+		array &$tokens,
+		string &$currentToken,
+		?string &$quote,
+		bool &$tokenInProgress,
+	):void {
+		if($quote !== null) {
+			$this->consumeQuotedExecuteCharacter(
+				$char,
+				$currentToken,
+				$quote,
+				$tokenInProgress,
+			);
+			return;
+		}
+
+		if($char === "'" || $char === '"') {
+			$quote = $char;
+			$tokenInProgress = true;
+			return;
+		}
+
+		if(ctype_space($char)) {
+			$this->finaliseExecuteToken(
+				$tokens,
+				$currentToken,
+				$tokenInProgress,
+			);
+			return;
+		}
+
+		$currentToken .= $char;
+		$tokenInProgress = true;
+	}
+
+	private function consumeQuotedExecuteCharacter(
+		string $char,
+		string &$currentToken,
+		?string &$quote,
+		bool &$tokenInProgress,
+	):void {
+		if($char === $quote) {
+			$quote = null;
+		}
+		else {
+			$currentToken .= $char;
+		}
+
+		$tokenInProgress = true;
+	}
+
+	/** @param array<int, string> $tokens */
+	private function finaliseExecuteToken(
+		array &$tokens,
+		string &$currentToken,
+		bool &$tokenInProgress,
+	):void {
+		if(!$tokenInProgress) {
+			return;
+		}
+
+		$tokens []= $currentToken;
+		$currentToken = "";
+		$tokenInProgress = false;
 	}
 
 	private function recursiveMerge(object $json, object $diff):object {
