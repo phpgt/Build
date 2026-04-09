@@ -1,9 +1,10 @@
 <?php
 namespace Gt\Build\Configuration;
 
-use Gt\Build\JsonParseException;
+use Gt\Build\ConfigurationParseException;
 use Gt\Build\MissingBuildFileException;
 use Iterator;
+use stdClass;
 
 /**
  * Represents the entire JSON configuration file, build.json
@@ -18,27 +19,24 @@ class Manifest implements Iterator {
 	/** @var int Numerical index to use in iteration */
 	protected int $iteratorIndex = 0;
 
-	public function __construct(string $jsonFilePath, ?string $mode = null) {
-		if(!is_file($jsonFilePath)) {
-			throw new MissingBuildFileException($jsonFilePath);
+	public function __construct(string $configFilePath, ?string $mode = null) {
+		if(!is_file($configFilePath)) {
+			throw new MissingBuildFileException($configFilePath);
 		}
 
-		$json = json_decode(file_get_contents($jsonFilePath));
-		if(is_null($json)) {
-			throw new JsonParseException(json_last_error_msg());
-		}
+		$json = $this->parseConfigurationFile($configFilePath);
 
 		if($mode) {
 			$modeJsonFilePath = substr(
-				$jsonFilePath,
+				$configFilePath,
 				0,
-				-strlen(".json"),
+				-strlen(pathinfo($configFilePath, PATHINFO_EXTENSION)) - 1,
 			);
-			$modeJsonFilePath .= ".$mode.json";
+			$modeJsonFilePath .= ".$mode." . pathinfo($configFilePath, PATHINFO_EXTENSION);
 			if(!is_file($modeJsonFilePath)) {
 				throw new MissingBuildFileException($modeJsonFilePath);
 			}
-			$modeJson = json_decode(file_get_contents($modeJsonFilePath));
+			$modeJson = $this->parseConfigurationFile($modeJsonFilePath);
 // For legacy reasons, stdClass is used to represent the block details.
 // This code might look weird, but it remains backwards compatible until an OOP
 // refactoring is made.
@@ -84,6 +82,193 @@ class Manifest implements Iterator {
 	protected function setIteratorKey():void {
 		$keys = array_keys($this->taskBlockList);
 		$this->iteratorKey = $keys[$this->iteratorIndex] ?? null;
+	}
+
+	private function parseConfigurationFile(string $configFilePath):object {
+		return match(strtolower(pathinfo($configFilePath, PATHINFO_EXTENSION))) {
+			"ini" => $this->parseIniFile($configFilePath),
+			"json" => $this->parseJsonFile($configFilePath),
+			default => $this->parseJsonFile($configFilePath),
+		};
+	}
+
+	private function parseJsonFile(string $configFilePath):object {
+		$json = json_decode(file_get_contents($configFilePath));
+		if(is_null($json)) {
+			throw new ConfigurationParseException(json_last_error_msg());
+		}
+
+		if(is_array($json)) {
+			return (object)$json;
+		}
+
+		return $json;
+	}
+
+	private function parseIniFile(string $configFilePath):object {
+		set_error_handler(static function():bool {
+			return true;
+		});
+		$ini = parse_ini_file($configFilePath, true, INI_SCANNER_RAW);
+		restore_error_handler();
+		if($ini === false) {
+			throw new ConfigurationParseException("Syntax error");
+		}
+
+		$manifest = new stdClass();
+		foreach($ini as $glob => $details) {
+			$taskBlock = new stdClass();
+
+			if(isset($details["name"])) {
+				$taskBlock->name = $details["name"];
+			}
+
+			if(isset($details["require"])) {
+				$taskBlock->require = $this->parseRequireString($details["require"]);
+			}
+
+			if(!isset($details["execute"])) {
+				throw new MissingConfigurationKeyException("execute");
+			}
+
+			$taskBlock->execute = $this->parseExecuteString($details["execute"]);
+			$manifest->$glob = $taskBlock;
+		}
+
+		return $manifest;
+	}
+
+	private function parseRequireString(string $requireString):object {
+		$require = new stdClass();
+		foreach(explode(",", $requireString) as $requirementDefinition) {
+			$requirementDefinition = trim($requirementDefinition);
+			if($requirementDefinition === "") {
+				continue;
+			}
+
+			$requirementParts = preg_split("/\s+/", $requirementDefinition, 2);
+			$command = $requirementParts[0];
+			$version = trim($requirementParts[1] ?? "*");
+			if($version === "") {
+				$version = "*";
+			}
+
+			$require->$command = $version;
+		}
+
+		return $require;
+	}
+
+	private function parseExecuteString(string $executeString):object {
+		if(strpbrk($executeString, ";#") !== false || preg_match("/[\r\n]/", $executeString)) {
+			throw new ConfigurationParseException(
+				"Forbidden character in execute command"
+			);
+		}
+
+		$tokens = [];
+		$currentToken = "";
+		$quote = null;
+		$tokenInProgress = false;
+		$length = strlen($executeString);
+
+		for($i = 0; $i < $length; $i++) {
+			$this->consumeExecuteCharacter(
+				$executeString[$i],
+				$tokens,
+				$currentToken,
+				$quote,
+				$tokenInProgress,
+			);
+		}
+
+		if($quote !== null) {
+			throw new ConfigurationParseException("Unterminated quote in execute command");
+		}
+
+		if($tokenInProgress) {
+			$tokens []= $currentToken;
+		}
+
+		if(empty($tokens)) {
+			throw new MissingConfigurationKeyException("execute.command");
+		}
+
+		$execute = new stdClass();
+		$execute->command = array_shift($tokens);
+		$execute->arguments = $tokens;
+		return $execute;
+	}
+
+	/**
+	 * @param array<int, string> $tokens
+	 * @param string|null $quote
+	 */
+	private function consumeExecuteCharacter(
+		string $char,
+		array &$tokens,
+		string &$currentToken,
+		?string &$quote,
+		bool &$tokenInProgress,
+	):void {
+		if($quote !== null) {
+			$this->consumeQuotedExecuteCharacter(
+				$char,
+				$currentToken,
+				$quote,
+				$tokenInProgress,
+			);
+			return;
+		}
+
+		if($char === "'" || $char === '"') {
+			$quote = $char;
+			$tokenInProgress = true;
+			return;
+		}
+
+		if(ctype_space($char)) {
+			$this->finaliseExecuteToken(
+				$tokens,
+				$currentToken,
+				$tokenInProgress,
+			);
+			return;
+		}
+
+		$currentToken .= $char;
+		$tokenInProgress = true;
+	}
+
+	private function consumeQuotedExecuteCharacter(
+		string $char,
+		string &$currentToken,
+		?string &$quote,
+		bool &$tokenInProgress,
+	):void {
+		if($char === $quote) {
+			$quote = null;
+		}
+		else {
+			$currentToken .= $char;
+		}
+
+		$tokenInProgress = true;
+	}
+
+	/** @param array<int, string> $tokens */
+	private function finaliseExecuteToken(
+		array &$tokens,
+		string &$currentToken,
+		bool &$tokenInProgress,
+	):void {
+		if(!$tokenInProgress) {
+			return;
+		}
+
+		$tokens []= $currentToken;
+		$currentToken = "";
+		$tokenInProgress = false;
 	}
 
 	private function recursiveMerge(object $json, object $diff):object {

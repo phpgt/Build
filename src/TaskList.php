@@ -24,7 +24,7 @@ class TaskList implements Iterator {
 
 		$specification = new Manifest($jsonFilePath, $mode);
 		foreach($specification as $glob => $taskBlock) {
-			$this->taskList[$glob] = new Task($taskBlock);
+			$this->taskList[$glob] = new Task($taskBlock, $baseDir);
 		}
 	}
 
