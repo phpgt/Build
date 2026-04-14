@@ -22,7 +22,7 @@ class BuildRunner {
 		}
 		$this->defaultPath = implode(DIRECTORY_SEPARATOR, [
 			getcwd(),
-			"build.json",
+			"build.ini",
 		]);
 		$this->workingDirectory = $path;
 		$this->stream = $stream;
@@ -68,30 +68,47 @@ class BuildRunner {
 
 	/** @SuppressWarnings(PHPMD.ExitExpression) */
 	protected function getJsonPath(string $workingDirectory):string {
-		$jsonPath = $workingDirectory;
-		if(is_dir($jsonPath)) {
-			$jsonPath .= DIRECTORY_SEPARATOR;
-			$jsonPath .= "build.json";
-		}
+		$jsonPath = $this->resolveConfigPath($workingDirectory)
+			?? $this->resolveConfigPath($this->defaultPath);
 
-		if(!is_file($jsonPath)) {
-			$jsonPath = $this->defaultPath;
-		}
-		if(!is_file($jsonPath)) {
-			$whichPath = $jsonPath === $this->defaultPath
-				? "default"
-				: "user";
+		if(is_null($jsonPath)) {
+			$whichPath = $this->defaultPath === $workingDirectory
+				? "user"
+				: "default";
 
+			$errorString = "No build config found. Trying $whichPath path: $this->defaultPath";
 			$this->stream->writeLine(
-				"No build config found. Trying $whichPath path: $jsonPath",
+				$errorString,
 				Stream::ERROR
 			);
 // TODO: Dynamic exit code https://github.com/PhpGt/Cli/issues/13
 // phpcs:ignore
-			exit(1);
+			throw new BuildException($errorString);
 		}
 
 		return $jsonPath;
+	}
+
+	protected function resolveConfigPath(string $path):?string {
+		if(is_dir($path)) {
+			$iniPath = $path . DIRECTORY_SEPARATOR . "build.ini";
+			if(is_file($iniPath)) {
+				return $iniPath;
+			}
+
+			$jsonPath = $path . DIRECTORY_SEPARATOR . "build.json";
+			if(is_file($jsonPath)) {
+				return $jsonPath;
+			}
+
+			return null;
+		}
+
+		if(is_file($path)) {
+			return $path;
+		}
+
+		return null;
 	}
 
 	/**
@@ -110,7 +127,7 @@ class BuildRunner {
 				$workingDirectory,
 				$mode,
 			);
-		} catch(JsonParseException $exception) {
+		} catch(ConfigurationParseException $exception) {
 			$this->stream->writeLine("Syntax error in $jsonPath", Stream::ERROR);
 // TODO: Dynamic exit code https://github.com/PhpGt/Cli/issues/13
 // phpcs:ignore

@@ -2,3 +2,5 @@
 /vendor
 /*.phar
 .phpunit*
+# Local wiki symlink
+docs
