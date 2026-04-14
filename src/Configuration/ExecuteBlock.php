@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Build\Configuration;
+namespace GT\Build\Configuration;
 
 class ExecuteBlock {
 	public string $command;

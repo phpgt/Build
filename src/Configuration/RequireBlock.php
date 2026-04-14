@@ -1,7 +1,7 @@
 <?php
-namespace Gt\Build\Configuration;
+namespace GT\Build\Configuration;
 
-use Gt\Build\Requirement;
+use GT\Build\Requirement;
 
 class RequireBlock {
 	/** @var RequireBlockItem[] */

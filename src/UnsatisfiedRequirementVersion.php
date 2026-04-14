@@ -1,4 +1,4 @@
 <?php
-namespace Gt\Build;
+namespace GT\Build;
 
 class UnsatisfiedRequirementVersion extends BuildException {}

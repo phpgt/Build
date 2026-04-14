@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Build;
+namespace GT\Build;
 
 use Webmozart\Glob\Glob;
 

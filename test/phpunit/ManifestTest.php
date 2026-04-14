@@ -1,11 +1,11 @@
 <?php
-namespace Gt\Build\Test;
+namespace GT\Build\Test;
 
-use Gt\Build\Configuration\MissingConfigurationKeyException;
-use Gt\Build\Configuration\Manifest;
-use Gt\Build\Configuration\TaskBlock;
-use Gt\Build\ConfigurationParseException;
-use Gt\Build\MissingBuildFileException;
+use GT\Build\Configuration\MissingConfigurationKeyException;
+use GT\Build\Configuration\Manifest;
+use GT\Build\Configuration\TaskBlock;
+use GT\Build\ConfigurationParseException;
+use GT\Build\MissingBuildFileException;
 use PHPUnit\Framework\TestCase;
 
 class ManifestTest extends TestCase {

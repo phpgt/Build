@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Build\Configuration;
+namespace GT\Build\Configuration;
 
 /**
  * Represents a single path pattern block in the build.json and specified

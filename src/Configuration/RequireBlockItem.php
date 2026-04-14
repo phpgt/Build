@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Build\Configuration;
+namespace GT\Build\Configuration;
 
 class RequireBlockItem {
 	public string $command;

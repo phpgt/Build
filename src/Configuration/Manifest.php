@@ -1,8 +1,8 @@
 <?php
-namespace Gt\Build\Configuration;
+namespace GT\Build\Configuration;
 
-use Gt\Build\ConfigurationParseException;
-use Gt\Build\MissingBuildFileException;
+use GT\Build\ConfigurationParseException;
+use GT\Build\MissingBuildFileException;
 use Iterator;
 use stdClass;
 

@@ -1,8 +1,8 @@
 <?php
-namespace Gt\Build\Test;
+namespace GT\Build\Test;
 
 use Exception;
-use Gt\Build\Build;
+use GT\Build\Build;
 use PHPUnit\Framework\TestCase;
 
 class BuildTest extends TestCase {

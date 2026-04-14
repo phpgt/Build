@@ -1,7 +1,7 @@
 <?php
-namespace Gt\Build\Cli;
+namespace GT\Build\Cli;
 
-use Gt\Build\BuildRunner;
+use GT\Build\BuildRunner;
 use Gt\Cli\Argument\ArgumentValueList;
 use Gt\Cli\Command\Command;
 use Gt\Cli\Parameter\NamedParameter;

@@ -1,9 +1,9 @@
 <?php
-namespace Gt\Build;
+namespace GT\Build;
 
-use Gt\Build\Configuration\ExecuteBlock;
-use Gt\Build\Configuration\RequireBlockItem;
-use Gt\Build\Configuration\TaskBlock;
+use GT\Build\Configuration\ExecuteBlock;
+use GT\Build\Configuration\RequireBlockItem;
+use GT\Build\Configuration\TaskBlock;
 use Gt\Daemon\Process;
 use Webmozart\Glob\Glob;
 use Webmozart\PathUtil\Path;

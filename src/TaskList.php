@@ -1,7 +1,7 @@
 <?php
-namespace Gt\Build;
+namespace GT\Build;
 
-use Gt\Build\Configuration\Manifest;
+use GT\Build\Configuration\Manifest;
 use Iterator;
 
 /**

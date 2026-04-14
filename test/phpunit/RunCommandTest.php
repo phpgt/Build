@@ -1,8 +1,8 @@
 <?php
-namespace Gt\Build\Test;
+namespace GT\Build\Test;
 
-use Gt\Build\BuildException;
-use Gt\Build\Cli\RunCommand;
+use GT\Build\BuildException;
+use GT\Build\Cli\RunCommand;
 use Gt\Cli\Argument\ArgumentValueList;
 use PHPUnit\Framework\TestCase;
 

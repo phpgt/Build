@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Build\Test\Helper;
+namespace GT\Build\Test\Helper;
 
 class Helper {
 

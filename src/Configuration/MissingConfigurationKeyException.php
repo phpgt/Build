@@ -1,6 +1,6 @@
 <?php
-namespace Gt\Build\Configuration;
+namespace GT\Build\Configuration;
 
-use Gt\Build\BuildException;
+use GT\Build\BuildException;
 
 class MissingConfigurationKeyException extends BuildException {}
