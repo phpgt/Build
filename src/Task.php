@@ -25,10 +25,11 @@ class Task {
 	 * @SuppressWarnings(PHPMD.StaticAccess)
 	 */
 	public function __construct(
-		TaskBlock $taskBlock
+		TaskBlock $taskBlock,
+		?string $basePath = null,
 	) {
 		$this->glob = $taskBlock->getGlob();
-		$this->basePath = getcwd();
+		$this->basePath = $basePath ?? getcwd();
 		$this->absolutePath = implode(DIRECTORY_SEPARATOR, [
 			$this->basePath,
 			$this->glob,

@@ -9,7 +9,11 @@ use Gt\Cli\Parameter\Parameter;
 
 class RunCommand extends Command {
 	public function run(?ArgumentValueList $arguments = null):int {
-		$buildRunner = new BuildRunner(getcwd(), $this->stream);
+		$path = getcwd();
+		if($arguments->contains("config")) {
+			$path = (string)$arguments->get("config");
+		}
+		$buildRunner = new BuildRunner($path, $this->stream);
 		if($arguments->contains("default")) {
 			$buildRunner->setDefaultPath($arguments->get("default"));
 		}

@@ -5,12 +5,14 @@ use Webmozart\Glob\Glob;
 
 class Build {
 	protected TaskList $taskList;
+	protected string $workingDirectory;
 
 	public function __construct(
 		string $jsonFilePath,
 		string $workingDirectory,
 		?string $mode = null
 	) {
+		$this->workingDirectory = $workingDirectory;
 		$this->taskList = new TaskList(
 			$jsonFilePath,
 			$workingDirectory,
@@ -25,18 +27,25 @@ class Build {
 	 */
 	public function check(?array &$errors = null):int {
 		$count = 0;
+		$previousCwd = getcwd();
+		chdir($this->workingDirectory);
 
-		foreach($this->taskList as $pathMatch => $task) {
-			$absolutePathMatch = implode(DIRECTORY_SEPARATOR, [
-				getcwd(),
-				$pathMatch,
-			]);
-			$fileList = Glob::glob($absolutePathMatch);
-			if(!empty($fileList)) {
-				$task->check($errors);
+		try {
+			foreach($this->taskList as $pathMatch => $task) {
+				$absolutePathMatch = implode(DIRECTORY_SEPARATOR, [
+					$this->workingDirectory,
+					$pathMatch,
+				]);
+				$fileList = Glob::glob($absolutePathMatch);
+				if(!empty($fileList)) {
+					$task->check($errors);
+				}
+
+				$count++;
 			}
-
-			$count++;
+		}
+		finally {
+			chdir($previousCwd);
 		}
 
 		return $count;
