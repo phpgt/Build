@@ -86,7 +86,7 @@ class Requirement {
 		return $matches[1] ?? "0.0.0";
 	}
 
-	/** @SuppressWarnings(PHPMD.StaticAccess) */
+	/** @SuppressWarnings("PHPMD.StaticAccess") */
 	protected function isVersionStringValid(string $versionInstalled):bool {
 		if($this->version === "*") {
 			return true;

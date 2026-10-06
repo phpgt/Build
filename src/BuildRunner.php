@@ -28,7 +28,7 @@ class BuildRunner {
 		$this->stream = $stream;
 	}
 
-	/** @SuppressWarnings(PHPMD.ExitExpression) */
+	/** @SuppressWarnings("PHPMD.ExitExpression") */
 	public function run(
 		bool $continue = true,
 		?string $mode = null
@@ -66,7 +66,7 @@ class BuildRunner {
 		return rtrim($this->workingDirectory, "/\\");
 	}
 
-	/** @SuppressWarnings(PHPMD.ExitExpression) */
+	/** @SuppressWarnings("PHPMD.ExitExpression") */
 	protected function getJsonPath(string $workingDirectory):string {
 		$jsonPath = $this->resolveConfigPath($workingDirectory)
 			?? $this->resolveConfigPath($this->defaultPath);
@@ -112,7 +112,7 @@ class BuildRunner {
 	}
 
 	/**
-	 * @SuppressWarnings(PHPMD.ExitExpression)
+	 * @SuppressWarnings("PHPMD.ExitExpression")
 	 * @param array<int, string> $errors
 	 */
 	protected function checkRequirements(
@@ -134,7 +134,9 @@ class BuildRunner {
 			exit(1);
 		}
 
-		$build->check($errors);
+		$requirementErrors = $errors;
+		$build->check($requirementErrors);
+		$errors = $requirementErrors ?? [];
 		return $build;
 	}
 
