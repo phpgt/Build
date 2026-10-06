@@ -23,7 +23,7 @@ class Build {
 	/**
 	 * For each task, ensure all requirements are met.
 	 * @param array<int, string>|null $errors
-	 * @SuppressWarnings(PHPMD.StaticAccess)
+	 * @SuppressWarnings("PHPMD.StaticAccess")
 	 */
 	public function check(?array &$errors = null):int {
 		$count = 0;

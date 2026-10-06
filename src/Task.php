@@ -22,7 +22,7 @@ class Task {
 	protected array $fileHashList = [];
 
 	/**
-	 * @SuppressWarnings(PHPMD.StaticAccess)
+	 * @SuppressWarnings("PHPMD.StaticAccess")
 	 */
 	public function __construct(
 		TaskBlock $taskBlock,
@@ -39,7 +39,7 @@ class Task {
 	}
 
 	public function __toString():string {
-		return $this->name ?? $this->execute->command;
+		return $this->name;
 	}
 
 	/** @param array<int, string>|null $errors */
@@ -57,7 +57,7 @@ class Task {
 	}
 
 	/**
-	 * @SuppressWarnings(PHPMD.StaticAccess)
+	 * @SuppressWarnings("PHPMD.StaticAccess")
 	 * @param array<int, string>|null $errors
 	 */
 	public function build(?array &$errors = null):bool {
