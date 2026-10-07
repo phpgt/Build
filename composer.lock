@@ -146,16 +146,16 @@
         },
         {
             "name": "phpgt/daemon",
-            "version": "v1.1.5",
+            "version": "v1.1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpgt/Daemon.git",
-                "reference": "413e16b54de6e1fd5c2b646b485f88a86dfedd9a"
+                "reference": "b537b1c713e481ec6a97d70143e559829f3c7f4c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpgt/Daemon/zipball/413e16b54de6e1fd5c2b646b485f88a86dfedd9a",
-                "reference": "413e16b54de6e1fd5c2b646b485f88a86dfedd9a",
+                "url": "https://api.github.com/repos/phpgt/Daemon/zipball/b537b1c713e481ec6a97d70143e559829f3c7f4c",
+                "reference": "b537b1c713e481ec6a97d70143e559829f3c7f4c",
                 "shasum": ""
             },
             "require": {
@@ -171,6 +171,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
+                    "GT\\Daemon\\": "./src",
                     "Gt\\Daemon\\": "./src"
                 }
             },
@@ -178,28 +179,28 @@
             "description": "Background script execution with cross-platform compatible streaming.",
             "support": {
                 "issues": "https://github.com/phpgt/Daemon/issues",
-                "source": "https://github.com/phpgt/Daemon/tree/v1.1.5"
+                "source": "https://github.com/phpgt/Daemon/tree/v1.1.7"
             },
             "funding": [
                 {
-                    "url": "https://github.com/sponsors/PhpGt",
+                    "url": "https://github.com/sponsors/phpgt",
                     "type": "github"
                 }
             ],
-            "time": "2026-03-11T14:11:10+00:00"
+            "time": "2026-07-10T09:53:00+00:00"
         },
         {
             "name": "phpgt/sync",
-            "version": "v1.3.2",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpgt/Sync.git",
-                "reference": "62d68ff44929a62d2185943f64415c257efc6e5b"
+                "reference": "5d921f71f7d874280c747e633c687f2a689291f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpgt/Sync/zipball/62d68ff44929a62d2185943f64415c257efc6e5b",
-                "reference": "62d68ff44929a62d2185943f64415c257efc6e5b",
+                "url": "https://api.github.com/repos/phpgt/Sync/zipball/5d921f71f7d874280c747e633c687f2a689291f1",
+                "reference": "5d921f71f7d874280c747e633c687f2a689291f1",
                 "shasum": ""
             },
             "require": {
@@ -219,6 +220,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
+                    "GT\\Sync\\": "./src",
                     "Gt\\Sync\\": "./src"
                 }
             },
@@ -236,15 +238,15 @@
             ],
             "support": {
                 "issues": "https://github.com/phpgt/Sync/issues",
-                "source": "https://github.com/phpgt/Sync/tree/v1.3.2"
+                "source": "https://github.com/phpgt/Sync/tree/v1.4.0"
             },
             "funding": [
                 {
-                    "url": "https://github.com/sponsors/PhpGt",
+                    "url": "https://github.com/sponsors/phpgt",
                     "type": "github"
                 }
             ],
-            "time": "2026-04-07T22:32:03+00:00"
+            "time": "2026-05-05T10:11:39+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -2870,16 +2872,16 @@
         },
         {
             "name": "symfony/polyfill-ctype",
-            "version": "v1.33.0",
+            "version": "v1.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-ctype.git",
-                "reference": "a3cc8b044a6ea513310cbd48ef7333b384945638"
+                "reference": "141046a8f9477948ff284fa65be2095baafb94f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-ctype/zipball/a3cc8b044a6ea513310cbd48ef7333b384945638",
-                "reference": "a3cc8b044a6ea513310cbd48ef7333b384945638",
+                "url": "https://api.github.com/repos/symfony/polyfill-ctype/zipball/141046a8f9477948ff284fa65be2095baafb94f2",
+                "reference": "141046a8f9477948ff284fa65be2095baafb94f2",
                 "shasum": ""
             },
             "require": {
@@ -2929,7 +2931,7 @@
                 "portable"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-ctype/tree/v1.33.0"
+                "source": "https://github.com/symfony/polyfill-ctype/tree/v1.37.0"
             },
             "funding": [
                 {
@@ -2949,7 +2951,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2026-04-10T16:19:22+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
