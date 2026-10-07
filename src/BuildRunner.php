@@ -2,6 +2,7 @@
 namespace GT\Build;
 
 use Gt\Cli\Stream;
+use Gt\Daemon\CommandNotFoundException;
 
 /** Responsible for running all build tasks and optionally watching for changes */
 class BuildRunner {
@@ -36,22 +37,55 @@ class BuildRunner {
 		$workingDirectory = $this->formatWorkingDirectory();
 		$jsonPath = $this->getJsonPath($workingDirectory);
 
-		$startTime = microtime(true);
+		$previousPath = getenv("PATH");
+		$previousCwd = getcwd();
+		$binPath = realpath($workingDirectory) . DIRECTORY_SEPARATOR . "node_modules"
+			. DIRECTORY_SEPARATOR . ".bin";
+		putenv("PATH=$binPath" . PATH_SEPARATOR . ($previousPath ?: ""));
 
-// Check that the developer has all the necessary requirements.
-// $errors will be passed by reference to Build::check. Passing an array by
-// reference will suppress exceptions, instead filling the array with error
-// strings for output back to the terminal.
-		$errors = [];
-		$build = $this->checkRequirements($jsonPath, $workingDirectory, $errors, $mode);
+		try {
+			$this->installClientSidePackages($workingDirectory);
+			$startTime = microtime(true);
+			$errors = [];
+			$build = $this->checkRequirements($jsonPath, $workingDirectory, $errors, $mode);
 
-		if(!empty($errors)) {
-			$this->showErrors($errors);
-			return;
+			if(!empty($errors)) {
+				$this->showErrors($errors);
+				$this->showInstallationHelp();
+				return;
+			}
+
+			$this->build($build, $continue);
+			$this->logElapsedTime($startTime);
 		}
+		catch(CommandNotFoundException $exception) {
+			$this->logMessage("Command not found: " . $exception->getMessage(), Stream::ERROR);
+			$this->showInstallationHelp();
+		}
+		catch(BuildException $exception) {
+			$this->logMessage($exception->getMessage(), Stream::ERROR);
+			$this->showInstallationHelp();
+		}
+		finally {
+			putenv($previousPath === false ? "PATH" : "PATH=$previousPath");
+			chdir($previousCwd);
+		}
+	}
 
-		$this->build($build, $continue);
-		$this->logElapsedTime($startTime);
+	protected function installClientSidePackages(string $workingDirectory):void {
+		$packages = new ClientSidePackages($workingDirectory, $this->stream);
+		$packages->installIfNeeded();
+	}
+
+	protected function showInstallationHelp():void {
+		$this->stream->writeLine(
+			"Install Node.js and npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm",
+			Stream::ERROR,
+		);
+		$this->stream->writeLine(
+			"Install your project's build tools with `npm install`: https://docs.npmjs.com/cli/commands/npm-install",
+			Stream::ERROR,
+		);
 	}
 
 	public function setDefaultPath(string $path):void {
