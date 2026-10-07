@@ -61,12 +61,28 @@ An example `build.json` below shows three different usages:
 }
 ```
 
-Not a dependency manager
-------------------------
+Installing client-side packages
+-------------------------------
 
-This library assumes the configuration of the system is already configured.
+For projects with a `package.json`, the build runner checks direct dependencies with
+`npm ls --json --depth=0 --include=dev` before checking build requirements. Missing
+packages or versions that do not satisfy `package.json` trigger `npm install
+--include=dev` automatically, with progress shown in the terminal. Installation
+must succeed and satisfy the dependency check before the build continues.
+Extraneous packages alone do not trigger installation. This checks installed
+dependencies, rather than whether `npm install` has ever been run; it does not
+validate every transitive dependency or compare the installation against a lockfile.
 
-The primary objective is to provide a client-side build system that is automatically configured for PHP projects, leaving the configuration of the system down to the developer's choice of client-side dependency management software.
+The project's `node_modules/.bin` is added to PATH during the build, so commands
+such as `webpack` and `sass` can use their locally installed binaries.
+
+Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+first. See [npm's installation documentation](https://docs.npmjs.com/cli/commands/npm-install)
+for installing the packages declared by your project. Missing build commands and
+installation failures include these links in the terminal.
+
+Projects without a `package.json` continue to use their chosen dependency manager
+and installed tools without invoking npm.
 
 Features at a glance
 --------------------
