@@ -152,6 +152,35 @@ class BuildRunnerTest extends TestCase {
 		self::assertStringContainsString("https://docs.npmjs.com/downloading-and-installing-node-js-and-npm", $output);
 	}
 
+	public function testUnsatisfiedRequirementsStopBuildAndRestoreUnsetPath():void {
+		$workingDirectory = $this->createTemporaryDirectory();
+		$this->createTemporaryFile($workingDirectory . "/source.js", "");
+		$this->createTemporaryFile($workingDirectory . "/build.ini",
+			"[*.js]\nexecute=phpgt-must-not-run unused\nrequire=" . PHP_BINARY . " >99.0\n");
+		$stream = $this->createStream();
+		$runner = new \GT\Build\BuildRunner($workingDirectory, $stream);
+		$previousPath = getenv("PATH");
+		$previousCwd = getcwd();
+		putenv("PATH");
+		try {
+			$runner->run(false);
+			self::assertFalse(getenv("PATH"));
+			self::assertSame($previousCwd, getcwd());
+		}
+		finally {
+			putenv($previousPath === false ? "PATH" : "PATH=$previousPath");
+		}
+		$stream->getOutStream()->rewind();
+		$output = $stream->getOutStream()->fread(4096);
+		self::assertStringContainsString("Unsatisfied version: " . PHP_BINARY . " >99.0", $output);
+		self::assertStringNotContainsString("Build script completed", $output);
+		$stream->getErrorStream()->rewind();
+		$error = $stream->getErrorStream()->fread(4096);
+		self::assertStringContainsString("The following errors occurred:", $error);
+		self::assertStringContainsString("https://docs.npmjs.com/cli/commands/npm-install", $error);
+		self::assertStringNotContainsString("Command not found", $error);
+	}
+
 	private function createTemporaryFile(string $path, string $content):void {
 		file_put_contents($path, $content);
 		$this->temporaryPaths []= $path;

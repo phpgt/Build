@@ -77,6 +77,59 @@ class ClientSidePackagesTest extends TestCase {
 		$sut->installIfNeeded();
 	}
 
+	public function testMalformedNpmOutputIncludesDiagnostics():void {
+		$sut = $this->createPackages([[1, 'not JSON', 'npm failed: ']]);
+		try {
+			$sut->installIfNeeded();
+			self::fail('Malformed dependency output must stop installation');
+		}
+		catch(BuildException $exception) {
+			self::assertSame('Unable to check client-side packages: npm failed: not JSON', $exception->getMessage());
+			self::assertCount(1, $sut->commands);
+		}
+	}
+
+	public function testCommandCapturesOutputExitCodeAndWorkingDirectorySilently():void {
+		$stream = new Stream('php://memory', 'php://memory', 'php://memory');
+		$sut = $this->createCommandRunner($stream);
+		$previousCwd = getcwd();
+		$result = $sut->execute([
+			PHP_BINARY, '-r',
+			'echo getcwd(); fwrite(STDERR, "command failed"); exit(3);',
+		]);
+
+		self::assertSame([3, $this->directory, 'command failed'], $result);
+		self::assertSame($previousCwd, getcwd());
+		$stream->getOutStream()->rewind();
+		$stream->getErrorStream()->rewind();
+		self::assertSame('', $stream->getOutStream()->fread(4096));
+		self::assertSame('', $stream->getErrorStream()->fread(4096));
+	}
+
+	public function testCommandStreamsAndCollectsOutputAcrossProcessLifetime():void {
+		$stream = new Stream('php://memory', 'php://memory', 'php://memory');
+		$sut = $this->createCommandRunner($stream);
+		$result = $sut->execute([
+			PHP_BINARY, '-r',
+			'echo "starting\\n"; fwrite(STDERR, "warning\\n"); usleep(100000);'
+				. 'echo "finished\\n"; fwrite(STDERR, "done\\n");',
+		], true);
+
+		self::assertSame([0, "starting\nfinished\n", "warning\ndone\n"], $result);
+		$stream->getOutStream()->rewind();
+		$stream->getErrorStream()->rewind();
+		self::assertSame($result[1], $stream->getOutStream()->fread(4096));
+		self::assertSame($result[2], $stream->getErrorStream()->fread(4096));
+	}
+
+	private function createCommandRunner(Stream $stream):object {
+		return new class($this->directory, $stream) extends ClientSidePackages {
+			public function execute(array $command, bool $showOutput = false):array {
+				return $this->runCommand($command, $showOutput);
+			}
+		};
+	}
+
 	private function assertDependenciesInstalled(string $problem):void {
 		$stream = new Stream('php://memory', 'php://memory', 'php://memory');
 		$sut = $this->createPackages([
