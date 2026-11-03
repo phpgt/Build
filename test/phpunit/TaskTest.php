@@ -3,6 +3,7 @@ namespace GT\Build\Test;
 
 use GT\Build\Configuration\TaskBlock;
 use GT\Build\Task;
+use GT\Build\Build;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -65,12 +66,62 @@ PHP);
 		self::assertFalse($task->build());
 	}
 
+	public function testRunOnceWaitsForMatchAndSkipsChangesAfterSuccess():void {
+		$directory = $this->createTemporaryDirectory();
+		$block = $this->createTaskBlock("*.txt", PHP_BINARY, ["-r", "exit(0);"] , true);
+		$task = new Task($block, $directory);
+		self::assertFalse($task->build());
+		file_put_contents("$directory/first.txt", "first");
+		self::assertTrue($task->build());
+		file_put_contents("$directory/second.txt", "second");
+		touch("$directory/first.txt", time() + 10);
+		clearstatcache();
+		self::assertFalse($task->build());
+		self::assertTrue((new Task($block, $directory))->build());
+	}
+
+	public function testRunOnceFailureDoesNotPreventLaterExecution():void {
+		$directory = $this->createTemporaryDirectory();
+		file_put_contents("$directory/first.txt", "first");
+		$task = new Task($this->createTaskBlock("*.txt", PHP_BINARY, [
+			"-r", 'exit(file_exists("ready") ? 0 : 1);',
+		], true), $directory);
+		$errors = [];
+		self::assertFalse($task->build($errors));
+		self::assertCount(1, $errors);
+		file_put_contents("$directory/ready", "");
+		file_put_contents("$directory/second.txt", "second");
+		self::assertTrue($task->build($errors));
+		self::assertFalse($task->build($errors));
+	}
+
+	public function testBuildContinuesOrdinaryTasksAfterRunOnceCompletes():void {
+		$directory = $this->createTemporaryDirectory();
+		file_put_contents("$directory/count.php", '<?php file_put_contents($argv[1], "x", FILE_APPEND);');
+		file_put_contents("$directory/first.txt", "first");
+		file_put_contents("$directory/build.ini", implode("\n", [
+			"[*.txt]",
+			'execute="' . PHP_BINARY . '" count.php once.count',
+			"options[run-once]=true",
+			"[*.{txt,js}]",
+			'execute="' . PHP_BINARY . '" count.php repeat.count',
+		]));
+		$build = new Build("$directory/build.ini", $directory);
+		self::assertCount(2, $build->build());
+		file_put_contents("$directory/second.txt", "second");
+		self::assertCount(1, $build->build());
+		self::assertSame("x", file_get_contents("$directory/once.count"));
+		self::assertSame("xx", file_get_contents("$directory/repeat.count"));
+	}
+
 	private function createTaskBlock(
 		string $glob,
 		string $command,
 		array $arguments,
+		bool $runOnce = false,
 	):TaskBlock {
 		$details = new stdClass();
+		$details->options = (object)["run-once" => $runOnce];
 		$details->execute = (object)[
 			"command" => $command,
 			"arguments" => $arguments,

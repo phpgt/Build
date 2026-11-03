@@ -17,6 +17,8 @@ class Task {
 	/** @var Requirement[] */
 	protected $requirementList = [];
 	protected ExecuteBlock $execute;
+	protected bool $runOnce;
+	protected bool $completed = false;
 
 	/** @var array<string, int> */
 	protected array $fileHashList = [];
@@ -61,6 +63,10 @@ class Task {
 	 * @param array<int, string>|null $errors
 	 */
 	public function build(?array &$errors = null):bool {
+		if($this->runOnce && $this->completed) {
+			return false;
+		}
+
 		$hashMiss = false;
 
 		foreach(Glob::glob($this->absolutePath) as $matchedPath) {
@@ -78,7 +84,8 @@ class Task {
 		}
 
 		if($hashMiss) {
-			return $this->execute($errors);
+			$this->completed = $this->execute($errors);
+			return $this->completed;
 		}
 		return false;
 	}
@@ -94,6 +101,7 @@ class Task {
 
 	protected function setDetails(TaskBlock $details):void {
 		$this->execute = $details->getExecuteBlock();
+		$this->runOnce = $details->isRunOnce();
 		$this->name = $details->getName();
 
 		if($details->getRequireBlock()) {

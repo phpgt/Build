@@ -24,42 +24,57 @@ This project provides a system for defining and running client-side build proces
 Example usage
 -------------
 
-An example `build.json` below shows three different usages:
+`build.ini` is the default configuration file. Each section names a file glob,
+and its command executes when matching files change. `build.json` remains supported.
 
-1) `npm` has been used to install babel into the node_modules directory. The command to run is the `babel` binary within the node_modules directory. The command will execute whenever a `*.es6` file changes within the script directory.
-2) `sass` has been installed to the system. The `sass` command is available on the environment PATH, and the developer has stated that at least version 3.5 is required for the build. The command will execute whenever a `*.scss` file changes within the style directory.
-3) A custom PHP script is called whenever any HTML or PHP file is edited in the page directory. This assumes that the command `vendor/bin/sitemap` is installed via a composer package.
+```ini
+[script/**/*.es6]
+name=Babel transpile
+require=node ^8.4
+execute=./node_modules/.bin/babel script/main.es6 -o www/script.js
 
-`build.json`:
+[style/**/*.scss]
+name=Sass compilation
+require=sass >=3.5
+execute=sass style/main.scss www/style.css
+```
+
+Run a task once per session
+---------------------------
+
+Use `options[run-once] = true` for setup commands such as creating asset symlinks:
+
+```ini
+[asset/**/*]
+require=vendor/bin/sync >=1.3.0
+execute=vendor/bin/sync ./asset ./www/asset --symlink
+options[run-once]=true
+```
+
+The task runs when its glob first matches. After a successful execution it stops
+scanning files and running commands for the rest of the watch session. Other tasks
+continue watching normally. Restarting the build allows it to run again. An empty
+glob waits until matching files appear. A failed execution does not complete the
+task; it can retry when matching files subsequently change. Omitting the option or
+setting it to `false` preserves normal rebuilding behaviour.
+
+The equivalent `build.json` configuration is:
 
 ```json
 {
-	"script/**/*.es6": {
-		"name": "Babel transpile",
-		"command": "./node_modules/.bin/babel",
-		"args": "script/main.js -o www/script.js",
-		"require": {
-			"node": "^8.4",
-			"@command": "^6.0"
-		}
-	},
-	
-	"style/**/*.scss": {
-		"name": "Sass compilation",
-		"command": "sass",
-		"args": "style/main.scss www/style.css",
-		"require": {
-			"@command": ">=3.5"
-		}
-	},
-	
-	"page/**/*.{html|php}": {
-		"name": "Sitemap generation",
-		"command": "php vendor/bin/sitemap",
-		"args": "src/page www/sitemap.xml"
-	}
+  "asset/**/*": {
+    "require": {"vendor/bin/sync": ">=1.3.0"},
+    "execute": {
+      "command": "vendor/bin/sync",
+      "arguments": ["./asset", "./www/asset", "--symlink"]
+    },
+    "options": {"run-once": true}
+  }
 }
 ```
+
+INI accepts `true` or `false`; JSON requires a boolean. Mode-specific configuration
+files can override this option, including setting it back to `false`.
 
 Installing client-side packages
 -------------------------------

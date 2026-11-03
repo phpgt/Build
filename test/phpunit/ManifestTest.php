@@ -9,6 +9,53 @@ use GT\Build\MissingBuildFileException;
 use PHPUnit\Framework\TestCase;
 
 class ManifestTest extends TestCase {
+	public function testRunOnceConfiguration():void {
+		foreach(["ini", "json"] as $format) {
+			$path = sys_get_temp_dir() . "/" . uniqid("run-once-", true) . ".$format";
+			$modePath = substr($path, 0, -strlen($format)) . "dev.$format";
+			try {
+				foreach([true, false, null, "invalid"] as $value) {
+					$details = ["execute" => ["command" => "php", "arguments" => ["--version"]]];
+					if($value !== null) {
+						$details["options"] = ["run-once" => $value];
+					}
+					$content = json_encode(["asset/*" => $details]);
+					if($format === "ini") {
+						$content = "[asset/*]\nexecute=php --version\n";
+						if($value !== null) {
+							$content .= "options[run-once]=" . (is_bool($value) ? ($value ? "true" : "false") : $value);
+						}
+					}
+					file_put_contents($path, $content);
+					try {
+						$blocks = iterator_to_array(new Manifest($path));
+						self::assertNotSame("invalid", $value);
+						self::assertSame($value === true, $blocks["asset/*"]->isRunOnce());
+					}
+					catch(ConfigurationParseException $exception) {
+						self::assertSame("invalid", $value);
+					}
+				}
+				foreach([true, false] as $enabled) {
+					file_put_contents($path, $format === "ini"
+						? "[asset/*]\nexecute=php --version\noptions[run-once]=" . ($enabled ? "false" : "true")
+						: json_encode(["asset/*" => ["execute" => ["command" => "php", "arguments" => ["--version"]], "options" => ["run-once" => !$enabled]]]));
+					file_put_contents($modePath, $format === "ini"
+						? "[asset/*]\nexecute=php --version\noptions[run-once]=" . ($enabled ? "true" : "false")
+						: json_encode(["asset/*" => ["options" => ["run-once" => $enabled]]]));
+					$blocks = iterator_to_array(new Manifest($path, "dev"));
+					self::assertSame($enabled, $blocks["asset/*"]->isRunOnce());
+				}
+			}
+			finally {
+				unlink($path);
+				if(is_file($modePath)) {
+					unlink($modePath);
+				}
+			}
+		}
+	}
+
 	public function testIterator_ini():void {
 		$iniFile = "test/phpunit/Helper/Ini/build.ini";
 		$sut = new Manifest($iniFile);
