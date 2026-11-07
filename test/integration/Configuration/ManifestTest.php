@@ -1,5 +1,5 @@
 <?php
-namespace GT\Build\Test;
+namespace GT\Build\Test\Integration\Configuration;
 
 use GT\Build\Configuration\MissingConfigurationKeyException;
 use GT\Build\Configuration\Manifest;
@@ -7,53 +7,103 @@ use GT\Build\Configuration\TaskBlock;
 use GT\Build\ConfigurationParseException;
 use GT\Build\MissingBuildFileException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class ManifestTest extends TestCase {
-	public function testRunOnceConfiguration():void {
+	#[DataProvider("runOnceConfigurations")]
+	public function testConstruct_runOnceConfiguration(string $format, mixed $value):void {
+		$path = $this->manifestPath($format);
+		file_put_contents($path, $this->manifestContents($format, $value));
+
+		try {
+			$sut = new Manifest($path);
+			$blocks = iterator_to_array($sut);
+			self::assertSame($value === true, $blocks["asset/*"]->isRunOnce());
+		}
+		finally {
+			unlink($path);
+		}
+	}
+
+	#[DataProvider("invalidRunOnceConfigurations")]
+	public function testConstruct_rejectsInvalidRunOnceConfiguration(string $format, mixed $value):void {
+		$path = $this->manifestPath($format);
+		file_put_contents($path, $this->manifestContents($format, $value));
+
+		try {
+			$this->expectException(ConfigurationParseException::class);
+			$sut = new Manifest($path);
+		}
+		finally {
+			unlink($path);
+		}
+	}
+
+	#[DataProvider("runOnceModeOverrides")]
+	public function testConstruct_modeOverridesRunOnce(string $format, bool $enabled):void {
+		$path = $this->manifestPath($format);
+		$modePath = substr($path, 0, -strlen($format)) . "dev.$format";
+		file_put_contents($path, $this->manifestContents($format, !$enabled));
+		file_put_contents($modePath, $this->manifestContents($format, $enabled));
+
+		try {
+			$sut = new Manifest($path, "dev");
+			$blocks = iterator_to_array($sut);
+			self::assertSame($enabled, $blocks["asset/*"]->isRunOnce());
+		}
+		finally {
+			unlink($path);
+			unlink($modePath);
+		}
+	}
+
+	public static function runOnceConfigurations():iterable {
 		foreach(["ini", "json"] as $format) {
-			$path = sys_get_temp_dir() . "/" . uniqid("run-once-", true) . ".$format";
-			$modePath = substr($path, 0, -strlen($format)) . "dev.$format";
-			try {
-				foreach([true, false, null, "invalid"] as $value) {
-					$details = ["execute" => ["command" => "php", "arguments" => ["--version"]]];
-					if($value !== null) {
-						$details["options"] = ["run-once" => $value];
-					}
-					$content = json_encode(["asset/*" => $details]);
-					if($format === "ini") {
-						$content = "[asset/*]\nexecute=php --version\n";
-						if($value !== null) {
-							$content .= "options[run-once]=" . (is_bool($value) ? ($value ? "true" : "false") : $value);
-						}
-					}
-					file_put_contents($path, $content);
-					try {
-						$blocks = iterator_to_array(new Manifest($path));
-						self::assertNotSame("invalid", $value);
-						self::assertSame($value === true, $blocks["asset/*"]->isRunOnce());
-					}
-					catch(ConfigurationParseException $exception) {
-						self::assertSame("invalid", $value);
-					}
-				}
-				foreach([true, false] as $enabled) {
-					file_put_contents($path, $format === "ini"
-						? "[asset/*]\nexecute=php --version\noptions[run-once]=" . ($enabled ? "false" : "true")
-						: json_encode(["asset/*" => ["execute" => ["command" => "php", "arguments" => ["--version"]], "options" => ["run-once" => !$enabled]]]));
-					file_put_contents($modePath, $format === "ini"
-						? "[asset/*]\nexecute=php --version\noptions[run-once]=" . ($enabled ? "true" : "false")
-						: json_encode(["asset/*" => ["options" => ["run-once" => $enabled]]]));
-					$blocks = iterator_to_array(new Manifest($path, "dev"));
-					self::assertSame($enabled, $blocks["asset/*"]->isRunOnce());
-				}
-			}
-			finally {
-				unlink($path);
-				if(is_file($modePath)) {
-					unlink($modePath);
-				}
+			foreach([true, false, null] as $value) {
+				yield [$format, $value];
 			}
 		}
+	}
+
+	public static function invalidRunOnceConfigurations():iterable {
+		foreach(["ini", "json"] as $format) {
+			yield [$format, "invalid"];
+			yield [$format, ["nested" => true]];
+		}
+	}
+
+	public static function runOnceModeOverrides():iterable {
+		foreach(["ini", "json"] as $format) {
+			foreach([true, false] as $enabled) {
+				yield [$format, $enabled];
+			}
+		}
+	}
+
+	private function manifestPath(string $format):string {
+		return sys_get_temp_dir() . "/" . uniqid("run-once-", true) . ".$format";
+	}
+
+	private function manifestContents(string $format, mixed $value):string {
+		if($format === "json") {
+			$details = ["execute" => ["command" => "php", "arguments" => ["--version"]]];
+			if($value !== null) {
+				$details["options"] = ["run-once" => $value];
+			}
+			return json_encode(["asset/*" => $details], JSON_THROW_ON_ERROR);
+		}
+
+		$content = "[asset/*]\nexecute=php --version\n";
+		if($value === null) {
+			return $content;
+		}
+		if(is_array($value)) {
+			return $content . "options[run-once][nested]=true";
+		}
+		if(is_bool($value)) {
+			$value = $value ? "true" : "false";
+		}
+		return $content . "options[run-once]=$value";
 	}
 
 	public function testIterator_ini():void {

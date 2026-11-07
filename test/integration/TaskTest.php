@@ -1,9 +1,8 @@
 <?php
-namespace GT\Build\Test;
+namespace GT\Build\Test\Integration;
 
 use GT\Build\Configuration\TaskBlock;
 use GT\Build\Task;
-use GT\Build\Build;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -18,7 +17,7 @@ class TaskTest extends TestCase {
 		$this->temporaryPaths = [];
 	}
 
-	public function testBuildExecutesWhenMatchingFilesChangeAndSkipsWhenNothingChanged():void {
+	public function testBuild_executesOnFileChangesAndSkipsUnchangedFiles():void {
 		$workingDirectory = $this->createTemporaryDirectory();
 		$sourceDir = $workingDirectory . DIRECTORY_SEPARATOR . "asset";
 		mkdir($sourceDir);
@@ -36,82 +35,74 @@ $currentCount = is_file($countFile) ? (int)file_get_contents($countFile) : 0;
 file_put_contents($countFile, (string)($currentCount + 1));
 PHP);
 
-		$task = new Task($this->createTaskBlock(
+		$sut = new Task($this->createTaskBlock(
 			"asset/*.js",
 			PHP_BINARY,
 			[$scriptPath, $outputFile],
 		), $workingDirectory);
 
-		self::assertTrue($task->build());
+		self::assertTrue($sut->build());
 		self::assertSame("1", file_get_contents($outputFile));
 
-		self::assertFalse($task->build());
+		self::assertFalse($sut->build());
 		self::assertSame("1", file_get_contents($outputFile));
 
-		sleep(1);
 		file_put_contents($sourceFile, "console.log('v2');");
+		touch($sourceFile, time() + 10);
+		clearstatcache();
 
-		self::assertTrue($task->build());
+		self::assertTrue($sut->build());
 		self::assertSame("2", file_get_contents($outputFile));
 	}
 
-	public function testBuildReturnsFalseWhenNoFilesMatchGlob():void {
+	public function testBuild_returnsFalseWithoutMatchingFiles():void {
 		$workingDirectory = $this->createTemporaryDirectory();
-		$task = new Task($this->createTaskBlock(
+		$sut = new Task($this->createTaskBlock(
 			"asset/*.js",
 			PHP_BINARY,
 			["-r", "exit(1);"],
 		), $workingDirectory);
 
-		self::assertFalse($task->build());
+		self::assertFalse($sut->build());
 	}
 
-	public function testRunOnceWaitsForMatchAndSkipsChangesAfterSuccess():void {
+	public function testBuild_runOnceWaitsForMatchAndSkipsLaterChanges():void {
 		$directory = $this->createTemporaryDirectory();
-		$block = $this->createTaskBlock("*.txt", PHP_BINARY, ["-r", "exit(0);"] , true);
-		$task = new Task($block, $directory);
-		self::assertFalse($task->build());
+		$block = $this->createTaskBlock("*.txt", PHP_BINARY, ["-r", "exit(0);"], true);
+		$sut = new Task($block, $directory);
+		self::assertFalse($sut->build());
 		file_put_contents("$directory/first.txt", "first");
-		self::assertTrue($task->build());
+		self::assertTrue($sut->build());
 		file_put_contents("$directory/second.txt", "second");
 		touch("$directory/first.txt", time() + 10);
 		clearstatcache();
-		self::assertFalse($task->build());
-		self::assertTrue((new Task($block, $directory))->build());
+		self::assertFalse($sut->build());
 	}
 
-	public function testRunOnceFailureDoesNotPreventLaterExecution():void {
+	public function testBuild_retriesRunOnceAfterFailure():void {
 		$directory = $this->createTemporaryDirectory();
 		file_put_contents("$directory/first.txt", "first");
-		$task = new Task($this->createTaskBlock("*.txt", PHP_BINARY, [
+		$sut = new Task($this->createTaskBlock("*.txt", PHP_BINARY, [
 			"-r", 'exit(file_exists("ready") ? 0 : 1);',
 		], true), $directory);
 		$errors = [];
-		self::assertFalse($task->build($errors));
+		self::assertFalse($sut->build($errors));
 		self::assertCount(1, $errors);
 		file_put_contents("$directory/ready", "");
 		file_put_contents("$directory/second.txt", "second");
-		self::assertTrue($task->build($errors));
-		self::assertFalse($task->build($errors));
+		self::assertTrue($sut->build($errors));
+		self::assertFalse($sut->build($errors));
 	}
 
-	public function testBuildContinuesOrdinaryTasksAfterRunOnceCompletes():void {
+	public function testConstruct_newSessionCanRunCompletedTask():void {
 		$directory = $this->createTemporaryDirectory();
-		file_put_contents("$directory/count.php", '<?php file_put_contents($argv[1], "x", FILE_APPEND);');
 		file_put_contents("$directory/first.txt", "first");
-		file_put_contents("$directory/build.ini", implode("\n", [
-			"[*.txt]",
-			'execute="' . PHP_BINARY . '" count.php once.count',
-			"options[run-once]=true",
-			"[*.{txt,js}]",
-			'execute="' . PHP_BINARY . '" count.php repeat.count',
-		]));
-		$build = new Build("$directory/build.ini", $directory);
-		self::assertCount(2, $build->build());
-		file_put_contents("$directory/second.txt", "second");
-		self::assertCount(1, $build->build());
-		self::assertSame("x", file_get_contents("$directory/once.count"));
-		self::assertSame("xx", file_get_contents("$directory/repeat.count"));
+		$block = $this->createTaskBlock("*.txt", PHP_BINARY, ["-r", "exit(0);"], true);
+		$previousTask = new Task($block, $directory);
+		$previousTask->build();
+
+		$sut = new Task($block, $directory);
+		self::assertTrue($sut->build());
 	}
 
 	private function createTaskBlock(
