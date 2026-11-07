@@ -18,14 +18,16 @@ class BuildTest extends TestCase {
 		file_put_contents("$directory/count.php", '<?php file_put_contents($argv[1], "x", FILE_APPEND);');
 		file_put_contents("$directory/first.txt", "first");
 		file_put_contents("$directory/build.ini", implode("\n", [
-			"[*.txt]",
+			"[first.*]",
 			'execute="' . PHP_BINARY . '" count.php once.count',
-			"options[run-once]=true",
-			"[*.{txt,js}]",
+			"run-once=true",
+			"[*.txt]",
 			'execute="' . PHP_BINARY . '" count.php repeat.count',
 		]));
 		$sut = new Build("$directory/build.ini", $directory);
 		self::assertCount(2, $sut->build());
+		touch("$directory/first.txt", time() + 2);
+		clearstatcache();
 		file_put_contents("$directory/second.txt", "second");
 		self::assertCount(1, $sut->build());
 		self::assertSame("x", file_get_contents("$directory/once.count"));

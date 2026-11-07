@@ -112,7 +112,7 @@ PHP);
 		bool $runOnce = false,
 	):TaskBlock {
 		$details = new stdClass();
-		$details->options = (object)["run-once" => $runOnce];
+		$details->{"run-once"} = $runOnce;
 		$details->execute = (object)[
 			"command" => $command,
 			"arguments" => $arguments,

@@ -42,13 +42,13 @@ execute=sass style/main.scss www/style.css
 Run a task once per session
 ---------------------------
 
-Use `options[run-once] = true` for setup commands such as creating asset symlinks:
+Use `run-once = true` for setup commands such as creating asset symlinks:
 
 ```ini
 [asset/**/*]
 require=vendor/bin/sync >=1.3.0
 execute=vendor/bin/sync ./asset ./www/asset --symlink
-options[run-once]=true
+run-once=true
 ```
 
 The task runs when its glob first matches. After a successful execution it stops
@@ -68,7 +68,7 @@ The equivalent `build.json` configuration is:
       "command": "vendor/bin/sync",
       "arguments": ["./asset", "./www/asset", "--symlink"]
     },
-    "options": {"run-once": true}
+    "run-once": true
   }
 }
 ```

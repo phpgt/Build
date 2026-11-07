@@ -88,7 +88,7 @@ class ManifestTest extends TestCase {
 		if($format === "json") {
 			$details = ["execute" => ["command" => "php", "arguments" => ["--version"]]];
 			if($value !== null) {
-				$details["options"] = ["run-once" => $value];
+				$details["run-once"] = $value;
 			}
 			return json_encode(["asset/*" => $details], JSON_THROW_ON_ERROR);
 		}
@@ -98,12 +98,12 @@ class ManifestTest extends TestCase {
 			return $content;
 		}
 		if(is_array($value)) {
-			return $content . "options[run-once][nested]=true";
+			return $content . "run-once[nested]=true";
 		}
 		if(is_bool($value)) {
 			$value = $value ? "true" : "false";
 		}
-		return $content . "options[run-once]=$value";
+		return $content . "run-once=$value";
 	}
 
 	public function testIterator_ini():void {

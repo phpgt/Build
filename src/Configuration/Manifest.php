@@ -118,19 +118,12 @@ class Manifest implements Iterator {
 		$manifest = new stdClass();
 		foreach($ini as $glob => $details) {
 			$taskBlock = new stdClass();
-			if(isset($details["options"])) {
-				$options = $details["options"];
-				if(!is_array($options)) {
-					throw new ConfigurationParseException("options must be an array");
+			if(array_key_exists("run-once", $details)) {
+				$value = $details["run-once"];
+				if(!is_string($value) || !in_array(strtolower($value), ["true", "false"], true)) {
+					throw new ConfigurationParseException("run-once must be true or false");
 				}
-				if(array_key_exists("run-once", $options)) {
-					$value = strtolower($options["run-once"]);
-					if(!in_array($value, ["true", "false"], true)) {
-						throw new ConfigurationParseException("options.run-once must be true or false");
-					}
-					$options["run-once"] = $value === "true";
-				}
-				$taskBlock->options = (object)$options;
+				$taskBlock->{"run-once"} = strtolower($value) === "true";
 			}
 
 			if(isset($details["name"])) {

@@ -20,17 +20,12 @@ class TaskBlock {
 
 	public function __construct(string $glob, object $details) {
 		$this->glob = $glob;
-		if(property_exists($details, "options")) {
-			if(!is_object($details->options)) {
-				throw new ConfigurationParseException("options must be an object");
+		if(property_exists($details, "run-once")) {
+			$value = $details->{"run-once"};
+			if(!is_bool($value)) {
+				throw new ConfigurationParseException("run-once must be a boolean");
 			}
-			if(property_exists($details->options, "run-once")) {
-				$value = $details->options->{"run-once"};
-				if(!is_bool($value)) {
-					throw new ConfigurationParseException("options.run-once must be a boolean");
-				}
-				$this->runOnce = $value;
-			}
+			$this->runOnce = $value;
 		}
 
 		if(isset($details->require)) {
