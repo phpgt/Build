@@ -1,6 +1,8 @@
 <?php
 namespace GT\Build\Configuration;
 
+use GT\Build\ConfigurationParseException;
+
 /**
  * Represents a single path pattern block in the build.json and specified
  * the properties that are allowed/expected.
@@ -14,9 +16,17 @@ class TaskBlock {
 	protected $require;
 	/** @var ExecuteBlock */
 	protected $execute;
+	protected bool $runOnce = false;
 
 	public function __construct(string $glob, object $details) {
 		$this->glob = $glob;
+		if(property_exists($details, "run-once")) {
+			$value = $details->{"run-once"};
+			if(!is_bool($value)) {
+				throw new ConfigurationParseException("run-once must be a boolean");
+			}
+			$this->runOnce = $value;
+		}
 
 		if(isset($details->require)) {
 			$this->require = new RequireBlock($details->require);
@@ -31,6 +41,10 @@ class TaskBlock {
 		}
 		$this->execute = new ExecuteBlock($details->execute);
 		$this->name = $details->name ?? $this->execute->command;
+	}
+
+	public function isRunOnce():bool {
+		return $this->runOnce;
 	}
 
 	public function getName():string {
