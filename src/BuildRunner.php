@@ -59,7 +59,10 @@ class BuildRunner {
 			$this->logElapsedTime($startTime);
 		}
 		catch(CommandNotFoundException $exception) {
-			$this->logMessage("Command not found: " . $exception->getMessage(), Stream::ERROR);
+			$this->logMessage(
+				"Error: The required command can not be found (" . $exception->getMessage() . ")",
+				Stream::ERROR,
+			);
 			$this->showInstallationHelp();
 		}
 		catch(BuildException $exception) {

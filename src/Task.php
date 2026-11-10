@@ -118,7 +118,12 @@ class Task {
 			$this->execute->command,
 			...$this->execute->arguments
 		);
-		$process->exec();
+		try {
+			$process->exec();
+		}
+		finally {
+			chdir($previousCwd);
+		}
 
 		do {
 			$output = $process->getOutput();
@@ -133,8 +138,6 @@ class Task {
 
 		}
 		while($process->isRunning());
-
-		chdir($previousCwd);
 
 		if($process->getExitCode() !== 0) {
 			if(is_null($errors)) {

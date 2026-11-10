@@ -83,7 +83,7 @@ class BuildRunnerTest extends TestCase {
 		self::assertSame($previousPath, getenv("PATH"));
 		$stream->getErrorStream()->rewind();
 		$output = $stream->getErrorStream()->fread(4096);
-		self::assertStringContainsString("Command not found: phpgt-missing-build-command", $output);
+		self::assertStringContainsString("Error: The required command can not be found (phpgt-missing-build-command)", $output);
 		self::assertStringContainsString("https://docs.npmjs.com/cli/commands/npm-install", $output);
 	}
 
@@ -148,7 +148,7 @@ class BuildRunnerTest extends TestCase {
 		}
 		$stream->getErrorStream()->rewind();
 		$output = $stream->getErrorStream()->fread(4096);
-		self::assertStringContainsString("Command not found: npm", $output);
+		self::assertStringContainsString("Error: The required command can not be found (npm)", $output);
 		self::assertStringContainsString("https://docs.npmjs.com/downloading-and-installing-node-js-and-npm", $output);
 	}
 
