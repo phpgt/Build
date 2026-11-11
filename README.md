@@ -111,3 +111,16 @@ Features at a glance
 [JetBrains Open Source sponsorship program](https://www.jetbrains.com/community/opensource/)
 
 [![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://www.jetbrains.com/community/opensource/)
+
+Missing build commands
+----------------------
+
+If a task's executable cannot be found, Build reports the configured command:
+
+```text
+Error: The required command can not be found (./node_modules/.bin/something)
+```
+
+Check the task's `execute` command and install the project's build tools with `npm install`. Build also prints links to the Node.js and npm installation guides. A relative command path is resolved from the project's working directory; a command name is looked up on PATH, including the project's `node_modules/.bin`.
+
+If a script exists but still cannot be launched, check that its interpreter is installed and that the file is executable. A command that starts and exits unsuccessfully is reported as a task execution failure.

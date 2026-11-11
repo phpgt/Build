@@ -3,6 +3,8 @@ namespace GT\Build\Test\Integration;
 
 use GT\Build\Configuration\TaskBlock;
 use GT\Build\Task;
+use Gt\Daemon\CommandNotFoundException;
+use GT\Build\TaskExecutionFailureException;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -103,6 +105,41 @@ PHP);
 
 		$sut = new Task($block, $directory);
 		self::assertTrue($sut->build());
+	}
+
+	public function testBuild_missingCommandRestoresWorkingDirectory():void {
+		$directory = $this->createTemporaryDirectory();
+		file_put_contents("$directory/source.txt", "source");
+		$sut = new Task($this->createTaskBlock("*.txt", "./node_modules/.bin/missing-tool", ["unused"]), $directory);
+		$previousCwd = getcwd();
+
+		try {
+			$sut->build();
+			self::fail("Expected a missing command exception");
+		}
+		catch(CommandNotFoundException $exception) {
+			self::assertSame("./node_modules/.bin/missing-tool", $exception->getMessage());
+			self::assertSame($previousCwd, getcwd());
+		}
+		finally {
+			chdir($previousCwd);
+		}
+	}
+
+	public function testBuild_nonZeroExitRemainsAnExecutionFailure():void {
+		$directory = $this->createTemporaryDirectory();
+		file_put_contents("$directory/source.txt", "source");
+		$sut = new Task($this->createTaskBlock("*.txt", PHP_BINARY, ["-r", "exit(1);"]), $directory);
+		$previousCwd = getcwd();
+
+		try {
+			$sut->build();
+			self::fail("Expected a task execution failure");
+		}
+		catch(TaskExecutionFailureException $exception) {
+			self::assertStringContainsString(PHP_BINARY, $exception->getMessage());
+			self::assertSame($previousCwd, getcwd());
+		}
 	}
 
 	private function createTaskBlock(
