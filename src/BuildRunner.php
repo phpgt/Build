@@ -1,8 +1,9 @@
 <?php
 namespace GT\Build;
 
-use Gt\Cli\Stream;
-use Gt\Daemon\CommandNotFoundException;
+use GT\Cli\Stream;
+use GT\Cli\StreamName;
+use GT\Daemon\CommandNotFoundException;
 
 /** Responsible for running all build tasks and optionally watching for changes */
 class BuildRunner {
@@ -61,12 +62,12 @@ class BuildRunner {
 		catch(CommandNotFoundException $exception) {
 			$this->logMessage(
 				"Error: The required command can not be found (" . $exception->getMessage() . ")",
-				Stream::ERROR,
+				StreamName::ERROR,
 			);
 			$this->showInstallationHelp();
 		}
 		catch(BuildException $exception) {
-			$this->logMessage($exception->getMessage(), Stream::ERROR);
+			$this->logMessage($exception->getMessage(), StreamName::ERROR);
 			$this->showInstallationHelp();
 		}
 		finally {
@@ -83,11 +84,11 @@ class BuildRunner {
 	protected function showInstallationHelp():void {
 		$this->stream->writeLine(
 			"Install Node.js and npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm",
-			Stream::ERROR,
+			StreamName::ERROR,
 		);
 		$this->stream->writeLine(
 			"Install your project's build tools with `npm install`: https://docs.npmjs.com/cli/commands/npm-install",
-			Stream::ERROR,
+			StreamName::ERROR,
 		);
 	}
 
@@ -116,7 +117,7 @@ class BuildRunner {
 			$errorString = "No build config found. Trying $whichPath path: $this->defaultPath";
 			$this->stream->writeLine(
 				$errorString,
-				Stream::ERROR
+				StreamName::ERROR
 			);
 // TODO: Dynamic exit code https://github.com/PhpGt/Cli/issues/13
 // phpcs:ignore
@@ -165,7 +166,7 @@ class BuildRunner {
 				$mode,
 			);
 		} catch(ConfigurationParseException $exception) {
-			$this->stream->writeLine("Syntax error in $jsonPath", Stream::ERROR);
+			$this->stream->writeLine("Syntax error in $jsonPath", StreamName::ERROR);
 // TODO: Dynamic exit code https://github.com/PhpGt/Cli/issues/13
 // phpcs:ignore
 			exit(1);
@@ -204,18 +205,18 @@ class BuildRunner {
 		}
 
 		foreach($errors as $error) {
-			$this->logMessage("Error: $error", Stream::ERROR);
+			$this->logMessage("Error: $error", StreamName::ERROR);
 		}
 	}
 
-	protected function logMessage(string $message, string $severity = Stream::OUT):void {
+	protected function logMessage(string $message, StreamName $severity = StreamName::OUT):void {
 		$message = date("Y-m-d H:i:s") . "\t" . $message;
 		$this->stream->writeLine($message, $severity);
 	}
 
 	/** @param array<int, string> $errors */
 	protected function showErrors(array $errors): void {
-		$this->stream->writeLine("The following errors occurred:", Stream::ERROR);
+		$this->stream->writeLine("The following errors occurred:", StreamName::ERROR);
 		foreach($errors as $e) {
 			$this->stream->writeLine(" • " . $e);
 		}

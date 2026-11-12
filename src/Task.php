@@ -4,7 +4,7 @@ namespace GT\Build;
 use GT\Build\Configuration\ExecuteBlock;
 use GT\Build\Configuration\RequireBlockItem;
 use GT\Build\Configuration\TaskBlock;
-use Gt\Daemon\Process;
+use GT\Daemon\Process;
 use Webmozart\Glob\Glob;
 use Webmozart\PathUtil\Path;
 

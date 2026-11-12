@@ -2,7 +2,7 @@
 namespace GT\Build\Test\Integration;
 
 use GT\Build\BuildRunner;
-use Gt\Cli\Stream;
+use GT\Cli\Stream;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

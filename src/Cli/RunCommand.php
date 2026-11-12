@@ -2,10 +2,10 @@
 namespace GT\Build\Cli;
 
 use GT\Build\BuildRunner;
-use Gt\Cli\Argument\ArgumentValueList;
-use Gt\Cli\Command\Command;
-use Gt\Cli\Parameter\NamedParameter;
-use Gt\Cli\Parameter\Parameter;
+use GT\Cli\Argument\ArgumentValueList;
+use GT\Cli\Command\Command;
+use GT\Cli\Parameter\NamedParameter;
+use GT\Cli\Parameter\Parameter;
 
 class RunCommand extends Command {
 	public function run(?ArgumentValueList $arguments = null):int {

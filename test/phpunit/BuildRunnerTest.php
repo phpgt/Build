@@ -2,7 +2,7 @@
 namespace GT\Build\Test;
 
 use GT\Build\BuildException;
-use Gt\Cli\Stream;
+use GT\Cli\Stream;
 use PHPUnit\Framework\TestCase;
 
 class BuildRunnerTest extends TestCase {
