@@ -3,7 +3,7 @@ namespace GT\Build\Test;
 
 use GT\Build\BuildException;
 use GT\Build\Cli\RunCommand;
-use Gt\Cli\Argument\ArgumentValueList;
+use GT\Cli\Argument\ArgumentValueList;
 use PHPUnit\Framework\TestCase;
 
 class RunCommandTest extends TestCase {

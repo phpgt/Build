@@ -3,7 +3,7 @@ namespace GT\Build\Test;
 
 use GT\Build\BuildException;
 use GT\Build\ClientSidePackages;
-use Gt\Cli\Stream;
+use GT\Cli\Stream;
 use PHPUnit\Framework\TestCase;
 
 class ClientSidePackagesTest extends TestCase {

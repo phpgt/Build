@@ -3,7 +3,7 @@ namespace GT\Build\Test\Integration;
 
 use GT\Build\Configuration\TaskBlock;
 use GT\Build\Task;
-use Gt\Daemon\CommandNotFoundException;
+use GT\Daemon\CommandNotFoundException;
 use GT\Build\TaskExecutionFailureException;
 use PHPUnit\Framework\TestCase;
 use stdClass;

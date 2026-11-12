@@ -1,8 +1,9 @@
 <?php
 namespace GT\Build;
 
-use Gt\Cli\Stream;
-use Gt\Daemon\Process;
+use GT\Cli\Stream;
+use GT\Cli\StreamName;
+use GT\Daemon\Process;
 
 /** Uses npm's dependency validation rather than comparing file timestamps. */
 class ClientSidePackages {
@@ -72,7 +73,7 @@ class ClientSidePackages {
 			$error .= $stderr;
 			if($showOutput) {
 				$this->stream->write($stdout);
-				$this->stream->write($stderr, Stream::ERROR);
+				$this->stream->write($stderr, StreamName::ERROR);
 			}
 			usleep(10000);
 		}
@@ -82,7 +83,7 @@ class ClientSidePackages {
 		$stderr = $process->getErrorOutput();
 		if($showOutput) {
 			$this->stream->write($stdout);
-			$this->stream->write($stderr, Stream::ERROR);
+			$this->stream->write($stderr, StreamName::ERROR);
 		}
 		return [$process->getExitCode(), $output . $stdout, $error . $stderr];
 	}
